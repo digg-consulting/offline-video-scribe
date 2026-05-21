@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Uninstall transcripto: interactive keep/delete for config, models, and transcripts.
+# Uninstall OVS: interactive keep/delete for config, models, and transcripts.
 # Usage: ./uninstall.sh [--dry-run] [-y]
 set -euo pipefail
 
@@ -8,7 +8,7 @@ cd "$ROOT"
 
 WHISPER_REPO="${WHISPER_REPO:-mlx-community/whisper-medium-mlx}"
 DIARIZATION_REPO="${DIARIZATION_REPO:-pyannote/speaker-diarization-community-1}"
-CONFIG_DIR="${HOME}/.config/transcripto"
+CONFIG_DIR="${HOME}/.config/ovs"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 if [[ -n "${HF_HUB_CACHE:-}" ]]; then
   HF_HUB="$HF_HUB_CACHE"
@@ -25,10 +25,10 @@ usage() {
   cat <<'EOF'
 Usage: ./uninstall.sh [options]
 
-Removes transcripto (CLI + repo .venv). Prompts what else to delete:
+Removes ovs (CLI + repo .venv). Prompts what else to delete:
 
-  - Config (~/.config/transcripto/config.yaml)
-  - Hugging Face model cache (transcripto repos only)
+  - Config (~/.config/ovs/config.yaml)
+  - Hugging Face model cache (ovs repos only)
   - Transcript output folder (from config, default ~/Transcripts)
 
 Options:
@@ -91,8 +91,8 @@ OUTPUT_DIR="${HOME}/Transcripts"
 if [[ -f "$CONFIG_FILE" ]] && [[ -d "$ROOT/.venv" ]]; then
   if paths="$(uv run python -c "
 from pathlib import Path
-from transcripto.config import load_config
-from transcripto.transcriber import resolve_model_repo
+from ovs.config import load_config
+from ovs.transcriber import resolve_model_repo
 c = load_config()
 print(resolve_model_repo(c.model))
 print(c.diarization_pipeline if c.diarization else '')
@@ -109,10 +109,10 @@ fi
 WHISPER_CACHE="${HF_HUB}/$(repo_to_folder "$WHISPER_REPO")"
 DIARIZATION_CACHE="${HF_HUB}/$(repo_to_folder "$DIARIZATION_REPO")"
 
-echo "transcripto uninstall"
+echo "ovs uninstall"
 echo ""
 echo "Will always remove (if present):"
-echo "  - uv tool: transcripto (global CLI)"
+echo "  - uv tool: ovs (global CLI)"
 echo "  - ${ROOT}/.venv"
 echo ""
 echo "You choose keep or delete for:"
@@ -136,8 +136,8 @@ if ask_yes_no "Delete config file?" "y"; then DELETE_CONFIG=1; fi
 if ask_yes_no "Delete Hugging Face model cache (both repos above)?" "n"; then DELETE_MODELS=1; fi
 if ask_yes_no "Delete transcript output directory?" "n"; then DELETE_OUTPUT=1; fi
 
-step "Removing transcripto CLI (uv tool uninstall)"
-run uv tool uninstall transcripto || true
+step "Removing ovs CLI (uv tool uninstall)"
+run uv tool uninstall ovs || true
 
 step "Removing project virtualenv"
 if [[ -d "$ROOT/.venv" ]]; then
@@ -162,7 +162,7 @@ else
 fi
 
 if [[ "$DELETE_MODELS" == "1" ]]; then
-  step "Removing Hugging Face model cache (transcripto repos)"
+  step "Removing Hugging Face model cache (ovs repos)"
   for dir in "$WHISPER_CACHE" "$DIARIZATION_CACHE"; do
     if [[ -d "$dir" ]]; then
       run rm -rf "$dir"

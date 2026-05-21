@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from transcripto.config import AppConfig
-from transcripto.diarization import (
+from ovs.config import AppConfig
+from ovs.diarization import (
     DIARIZATION_PIPELINE_ID,
     check_pyannote_available,
 )
-from transcripto.hub_cache import (
+from ovs.hub_cache import (
     diarization_cache_debug,
     hub_repo_has_weight_files,
     pipeline_snapshot_dir,
     whisper_cache_debug,
 )
-from transcripto.transcriber import is_model_cached, resolve_model_repo
+from ovs.transcriber import is_model_cached, resolve_model_repo
 
 
 def diarization_cache_status(
@@ -53,9 +53,9 @@ def models_prereq_help(cfg: AppConfig) -> str:
     """Instructions when offline prerequisites are not met."""
     repo = resolve_model_repo(cfg.model)
     lines = [
-        "Offline prerequisites not met — models must be downloaded before using transcripto.",
+        "Offline prerequisites not met — models must be downloaded before using OVS.",
         "",
-        "Prepare with the Hugging Face CLI (not transcripto):",
+        "Prepare with the Hugging Face CLI (not OVS):",
         "",
         "  brew install huggingface-cli",
         "  hf auth login",
@@ -80,7 +80,7 @@ def models_prereq_help(cfg: AppConfig) -> str:
     lines.extend(
         [
             "",
-            "  transcripto check",
+            "  ovs check",
             "",
             "See docs/HUGGINGFACE.md",
         ]

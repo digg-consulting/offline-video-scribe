@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-time install: Python env, CLI on PATH, Homebrew tools, HF models, transcripto setup.
+# One-time install: Python env, CLI on PATH, Homebrew tools, HF models, OVS setup.
 # Usage: ./install.sh
 # Re-run is safe (skips steps that already succeeded).
 set -euo pipefail
@@ -27,7 +27,7 @@ need_cmd uv
 step "Installing Python dependencies (uv sync)"
 uv sync
 
-step "Installing transcripto on PATH (uv tool install)"
+step "Installing OVS on PATH (uv tool install)"
 uv tool install -e .
 
 step "Homebrew tools (ffmpeg + Hugging Face CLI)"
@@ -51,11 +51,11 @@ if [[ "$SKIP_HF" != "1" ]]; then
     echo "    Already logged in: $(hf whoami 2>/dev/null | head -1 || true)"
   fi
 
-  step "transcripto config"
-  transcripto init
+  step "ovs config"
+  ovs init
 
   step "Checking if models are already cached"
-  if transcripto check >/dev/null 2>&1; then
+  if ovs check >/dev/null 2>&1; then
     echo "    Models already ready — skipping hf download."
   else
     echo ""
@@ -76,24 +76,24 @@ if [[ "$SKIP_HF" != "1" ]]; then
       echo "  2. Agree to the model terms (logged in as the same user as hf auth login)" >&2
       echo "  3. Re-run: ./install.sh" >&2
       echo "" >&2
-      echo "Or disable diarization in ~/.config/transcripto/config.yaml and re-run with:" >&2
+      echo "Or disable diarization in ~/.config/ovs/config.yaml and re-run with:" >&2
       echo "  SKIP_HF=1 ./install.sh   # only if you already have Whisper cached" >&2
       exit 1
     fi
   fi
 else
   step "Skipping Hugging Face downloads (SKIP_HF=1)"
-  transcripto init
+  ovs init
 fi
 
-step "transcripto setup (config + offline verification)"
-transcripto setup
+step "ovs setup (config + offline verification)"
+ovs setup
 
 echo ""
 echo "Done. One-time install complete."
 echo ""
 echo "Daily use:"
-echo "  transcripto transcribe /path/to/video.mov"
+echo "  ovs transcribe /path/to/video.mov"
 echo ""
 echo "Docs: docs/HUGGINGFACE.md"
 echo "Uninstall: ./uninstall.sh"

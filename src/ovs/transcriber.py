@@ -2,7 +2,7 @@ from pathlib import Path
 
 import mlx_whisper
 
-from transcripto.models import Segment, TranscriptResult
+from ovs.models import Segment, TranscriptResult
 
 MODEL_REPOS = {
     "large-v3": "mlx-community/whisper-large-v3-mlx",
@@ -42,7 +42,7 @@ def _weight_in_snapshot(snap_dir: Path) -> Path | None:
 
 def is_model_cached(model: str) -> bool:
     """True if Whisper weights are present under a local hub snapshot (offline)."""
-    from transcripto.hub_cache import whisper_snapshot_dir
+    from ovs.hub_cache import whisper_snapshot_dir
 
     repo = resolve_model_repo(model)
     snap_dir = whisper_snapshot_dir(repo)
@@ -55,7 +55,7 @@ def is_model_cached(model: str) -> bool:
 
 def whisper_snapshot_path(model: str) -> Path:
     """Local snapshot directory for mlx-whisper; raises if not ready for offline use."""
-    from transcripto.hub_cache import whisper_snapshot_dir
+    from ovs.hub_cache import whisper_snapshot_dir
 
     repo = resolve_model_repo(model)
     snap_dir = whisper_snapshot_dir(repo)
@@ -65,7 +65,7 @@ def whisper_snapshot_path(model: str) -> Path:
 
 
 def model_prereq_help(model: str) -> str:
-    """Instructions when the model is not in cache (user downloads outside transcripto)."""
+    """Instructions when the model is not in cache (user downloads outside OVS)."""
     repo = resolve_model_repo(model)
     return f"""Whisper model '{model}' is not in your local Hugging Face cache.
 
@@ -73,7 +73,7 @@ Prepare with the Hugging Face CLI (see docs/HUGGINGFACE.md):
 
   hf auth login
   hf download {repo} --include "config.json" --include "weights.npz"
-  transcripto check --model {model}
+  ovs check --model {model}
 """
 
 

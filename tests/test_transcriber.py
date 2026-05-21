@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from transcripto.hub_cache import repo_id_to_cache_folder
-from transcripto.transcriber import (
+from ovs.hub_cache import repo_id_to_cache_folder
+from ovs.transcriber import (
     _MIN_WEIGHT_BYTES,
     is_model_cached,
     model_prereq_help,
@@ -75,12 +75,12 @@ def test_whisper_snapshot_path_returns_snapshot_dir(tmp_path, monkeypatch):
 def test_model_prereq_help_mentions_hf_download():
     help_text = model_prereq_help("medium")
     assert "hf download" in help_text
-    assert "transcripto check" in help_text
+    assert "ovs check" in help_text
     assert "whisper-medium-mlx" in help_text
 
 
 def test_no_try_to_load_from_cache_import():
-    import transcripto.transcriber as tr
+    import ovs.transcriber as tr
 
     source = open(tr.__file__, encoding="utf-8").read()
     assert "try_to_load_from_cache" not in source

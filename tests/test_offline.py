@@ -1,8 +1,8 @@
 import os
 from unittest.mock import patch
 
-from transcripto.cli import main
-from transcripto.offline import apply_runtime_offline_env, is_runtime_command
+from ovs.cli import main
+from ovs.offline import apply_runtime_offline_env, is_runtime_command
 
 
 def test_is_runtime_command():
@@ -17,8 +17,8 @@ def test_apply_runtime_offline_env():
     assert os.environ.get("HF_HUB_DISABLE_TELEMETRY") == "1"
 
 
-@patch("transcripto.cli.cmd_check", return_value=0)
-@patch("transcripto.cli.build_parser")
+@patch("ovs.cli.cmd_check", return_value=0)
+@patch("ovs.cli.build_parser")
 def test_main_sets_offline_env_for_check(mock_build, _mock_check):
     mock_build.return_value.parse_args.return_value = type(
         "Args",
