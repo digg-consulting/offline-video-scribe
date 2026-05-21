@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from transcripto.models import Segment, TranscriptResult
+from ovs.models import Segment, TranscriptResult
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ Prepare with the Hugging Face CLI (see docs/HUGGINGFACE.md):
   {HF_ACCEPT_URL}
 
   hf download {DIARIZATION_PIPELINE_ID}
-  transcripto check
+  ovs check
 """
 
 
@@ -50,7 +50,7 @@ def load_diarization_pipeline(pipeline_id: str = DIARIZATION_PIPELINE_ID):
     """Load the pyannote diarization pipeline from the local hub snapshot only."""
     check_pyannote_available()
     from pyannote.audio import Pipeline
-    from transcripto.hub_cache import pipeline_snapshot_dir
+    from ovs.hub_cache import pipeline_snapshot_dir
 
     snap_dir = pipeline_snapshot_dir(pipeline_id, "config.yaml")
     if snap_dir is None:
@@ -68,7 +68,7 @@ def run_diarization(
     duration_s: float | None = None,
 ) -> list[SpeakerTurn]:
     """Return speaker turns for an audio file."""
-    from transcripto.ffmpeg_util import wav_duration_seconds
+    from ovs.ffmpeg_util import wav_duration_seconds
 
     path = Path(audio_path)
     if duration_s is None:
@@ -157,7 +157,7 @@ def apply_diarization(
                 speaker=speaker,
             )
         )
-    from transcripto.writers import format_full_text
+    from ovs.writers import format_full_text
 
     return TranscriptResult(
         text=format_full_text(segments),

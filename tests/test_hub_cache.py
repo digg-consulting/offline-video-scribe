@@ -1,10 +1,10 @@
-from transcripto.hub_cache import (
+from ovs.hub_cache import (
     find_cached_file,
     find_cached_file_with_min_size,
     hub_repo_has_weight_files,
     repo_id_to_cache_folder,
 )
-from transcripto.transcriber import _MIN_WEIGHT_BYTES, is_model_cached
+from ovs.transcriber import _MIN_WEIGHT_BYTES, is_model_cached
 
 
 def _layout_hub_cache(tmp_path, repo_id: str, files: dict[str, bytes]) -> None:

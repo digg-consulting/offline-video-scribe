@@ -1,16 +1,16 @@
-# transcripto — user config
-# Install:  source .venv/bin/activate && transcripto init
-# Path:     ~/.config/transcripto/config.yaml
-# Override:  export TRANSCRIPTO_CONFIG=/path/to/config.yaml
+# OVS (Offline Video Scribe) — user config
+# Install:  ovs init
+# Path:     ~/.config/ovs/config.yaml
+# Override:  export OVS_CONFIG=/path/to/config.yaml
 #
-# Models must be pre-downloaded with the Hugging Face CLI (transcripto is offline-only).
+# Models must be pre-downloaded with the Hugging Face CLI (OVS is offline-only).
 # Full steps: docs/HUGGINGFACE.md
 #
 #   brew install huggingface-cli
 #   hf auth login
 #   hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
 #   hf download pyannote/speaker-diarization-community-1   # after accepting gated terms
-#   transcripto check
+#   ovs check
 
 # Whisper model (see hf download commands in docs/HUGGINGFACE.md per option)
 #   medium      → mlx-community/whisper-medium-mlx
@@ -42,7 +42,7 @@ formats:
   - vtt
 
 watch:
-  # Folders monitored by: transcripto watch
+  # Folders monitored by: ovs watch
   paths:
     - ~/Movies
   debounce_seconds: 2

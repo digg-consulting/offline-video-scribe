@@ -3,20 +3,20 @@ import logging
 import sys
 from pathlib import Path
 
-from transcripto import __version__
-from transcripto.config import load_config, write_default_config
-from transcripto.ffmpeg_util import FfmpegNotFoundError, require_ffmpeg
-from transcripto.models_status import (
+from ovs import __version__
+from ovs.config import load_config, write_default_config
+from ovs.ffmpeg_util import FfmpegNotFoundError, require_ffmpeg
+from ovs.models_status import (
     all_models_cached,
     models_prereq_help,
     models_status,
     models_status_verbose,
 )
-from transcripto.offline import apply_runtime_offline_env, is_runtime_command
-from transcripto.paths import OutputMode
-from transcripto.pipeline import discover_videos, run_batch
-from transcripto.diarization import check_pyannote_available
-from transcripto.watcher import run_watch
+from ovs.offline import apply_runtime_offline_env, is_runtime_command
+from ovs.paths import OutputMode
+from ovs.pipeline import discover_videos, run_batch
+from ovs.diarization import check_pyannote_available
+from ovs.watcher import run_watch
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -40,7 +40,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def cmd_setup(args: argparse.Namespace) -> int:
     """Write config and verify offline prerequisites."""
-    print("=== transcripto setup ===\n")
+    print("=== ovs setup ===\n")
     cfg_path, created = write_default_config()
     if created:
         print(f"config: {cfg_path} (installed)")
@@ -77,7 +77,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         return 2
 
     if args.skip_model:
-        print("transcripto: ready (model check skipped — dev/CI only)")
+        print("ovs: ready (model check skipped — dev/CI only)")
         return 0
 
     cfg = load_config(Path(args.config) if args.config else None)
@@ -110,7 +110,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     else:
         print("diarization: disabled")
 
-    print("transcripto: ready (offline — local models verified)")
+    print("ovs: ready (offline — local models verified)")
     return 0
 
 
@@ -184,19 +184,19 @@ def cmd_watch(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="transcripto")
+    p = argparse.ArgumentParser(prog="ovs")
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="command", required=True)
 
     init_p = sub.add_parser(
         "init",
-        help="Install default config at ~/.config/transcripto/config.yaml",
+        help="Install default config at ~/.config/ovs/config.yaml",
     )
     init_p.add_argument(
         "--config",
         type=str,
         default=None,
-        help="Destination path (default: ~/.config/transcripto/config.yaml)",
+        help="Destination path (default: ~/.config/ovs/config.yaml)",
     )
     init_p.add_argument(
         "--force",

@@ -1,8 +1,8 @@
 # Hugging Face: prepare models (bootstrap only)
 
-transcripto is **offline-only** at runtime. It does **not** download weights, store tokens, or contact huggingface.co during `check`, `transcribe`, or `watch`.
+OVS (Offline Video Scribe) is **offline-only** at runtime. It does **not** download weights, store tokens, or contact huggingface.co during `check`, `transcribe`, or `watch`.
 
-Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/huggingface/hub`, then use transcripto.
+Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/huggingface/hub`, then use `ovs`.
 
 ---
 
@@ -64,20 +64,20 @@ ls -lh ~/.cache/huggingface/hub/models--mlx-community--whisper-medium-mlx/snapsh
 hf download pyannote/speaker-diarization-community-1
 ```
 
-### 6. Verify with transcripto
+### 6. Verify with OVS
 
 ```bash
-transcripto check
-# or: transcripto check --verbose
+ovs check
+# or: ovs check --verbose
 ```
 
 Expected last line:
 
 ```text
-transcripto: ready (offline — local models verified)
+ovs: ready (offline — local models verified)
 ```
 
-Weights live under `~/.cache/huggingface/hub` (not in the transcripto git repo).
+Weights live under `~/.cache/huggingface/hub` (not in the OVS git repo).
 
 ---
 
@@ -90,7 +90,7 @@ hf auth login
 hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
 hf download pyannote/speaker-diarization-community-1
 
-transcripto check
+ovs check
 ```
 
 ---
@@ -105,18 +105,18 @@ transcripto check
 | `model: large-v3` | `mlx-community/whisper-large-v3-mlx` | ~3 GB |
 | `diarization_pipeline` (default) | `pyannote/speaker-diarization-community-1` | **Gated** — accept terms first |
 
-After changing `model` or `diarization_pipeline` in `~/.config/transcripto/config.yaml`, run the matching `hf download` commands, then `transcripto check`.
+After changing `model` or `diarization_pipeline` in `~/.config/ovs/config.yaml`, run the matching `hf download` commands, then `ovs check`.
 
 ### Whisper-only (no diarization)
 
 ```yaml
-# ~/.config/transcripto/config.yaml
+# ~/.config/ovs/config.yaml
 diarization: false
 ```
 
 ```bash
 hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
-transcripto check
+ovs check
 ```
 
 ---
@@ -146,7 +146,7 @@ Cannot access gated repo … you are not in the authorized list
 
 ## Licenses
 
-transcripto does not ship these weights; you download them under each publisher’s terms.
+OVS does not ship these weights; you download them under each publisher’s terms.
 
 | Component | Repo | Access | License |
 |-----------|------|--------|---------|
@@ -154,13 +154,13 @@ transcripto does not ship these weights; you download them under each publisher�
 | Diarization (default) | [pyannote/speaker-diarization-community-1](https://huggingface.co/pyannote/speaker-diarization-community-1) | **Gated** | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) |
 | Legacy diarization | [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) | **Gated** (separate acceptance) | See that model page |
 
-**transcripto** code is MIT (`LICENSE`); that does not cover downloaded weights.
+**OVS** code is MIT (`LICENSE`); that does not cover downloaded weights.
 
 ---
 
 ## Token storage (for `hf` CLI only)
 
-transcripto does **not** read Keychain or `HF_TOKEN`. The Hugging Face CLI stores credentials for downloads:
+OVS does **not** read Keychain or `HF_TOKEN`. The Hugging Face CLI stores credentials for downloads:
 
 | Method | Storage |
 |--------|---------|
@@ -180,17 +180,17 @@ hf whoami
 |---------|-----|
 | `check` says whisper not ready, folder exists | Re-download with `--include "weights.npz"`; file should be ~1 GB, not ~100 bytes (LFS pointer) |
 | 403 on pyannote | Accept terms on the model page, then `hf download` again |
-| Wrong model in config | `hf download` the repo for your `model` / `diarization_pipeline`, then `transcripto check` |
+| Wrong model in config | `hf download` the repo for your `model` / `diarization_pipeline`, then `ovs check` |
 
 ```bash
-transcripto check --verbose
+ovs check --verbose
 ```
 
 ---
 
-## What transcripto verifies offline
+## What OVS verifies offline
 
-`transcripto check` confirms:
+`ovs check` confirms:
 
 - Whisper: `config.json` + full weight file (≥ 1 MB) under a hub **snapshot** directory
 - Diarization (if enabled): `config.yaml`, weight files, and a local pyannote load test

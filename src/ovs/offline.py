@@ -1,4 +1,4 @@
-"""Enforce offline Hugging Face hub access for transcripto runtime commands."""
+"""Enforce offline Hugging Face hub access for OVS runtime commands."""
 
 from __future__ import annotations
 

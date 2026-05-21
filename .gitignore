@@ -30,5 +30,5 @@ build/
 # Logs and debug output
 *.log
 
-# User config (use config.yaml.example; real config lives in ~/.config/transcripto/)
+# User config (use config.yaml.example; real config lives in ~/.config/ovs/)
 config/config.yaml

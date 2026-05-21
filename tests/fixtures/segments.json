@@ -1,0 +1,4 @@
+[
+  {"start": 0.0, "end": 2.5, "text": "Hello world."},
+  {"start": 2.5, "end": 5.0, "text": "Second line."}
+]

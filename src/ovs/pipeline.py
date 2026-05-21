@@ -2,17 +2,17 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from transcripto.config import AppConfig
-from transcripto.diarization import apply_diarization, load_diarization_pipeline, run_diarization
-from transcripto.ffmpeg_util import extract_audio_wav, wav_duration_seconds
-from transcripto.paths import (
+from ovs.config import AppConfig
+from ovs.diarization import apply_diarization, load_diarization_pipeline, run_diarization
+from ovs.ffmpeg_util import extract_audio_wav, wav_duration_seconds
+from ovs.paths import (
     OutputMode,
     move_video_to_archive,
     output_paths_for,
     should_skip,
 )
-from transcripto.transcriber import transcribe_audio
-from transcripto.writers import write_formats
+from ovs.transcriber import transcribe_audio
+from ovs.writers import write_formats
 
 logger = logging.getLogger(__name__)
 
