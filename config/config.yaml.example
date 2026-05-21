@@ -1,0 +1,51 @@
+# transcripto — user config
+# Install:  source .venv/bin/activate && transcripto init
+# Path:     ~/.config/transcripto/config.yaml
+# Override:  export TRANSCRIPTO_CONFIG=/path/to/config.yaml
+#
+# Models must be pre-downloaded with the Hugging Face CLI (transcripto is offline-only).
+# Full steps: docs/HUGGINGFACE.md
+#
+#   brew install huggingface-cli
+#   hf auth login
+#   hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
+#   hf download pyannote/speaker-diarization-community-1   # after accepting gated terms
+#   transcripto check
+
+# Whisper model (see hf download commands in docs/HUGGINGFACE.md per option)
+#   medium      → mlx-community/whisper-medium-mlx
+#   medium-8bit → mlx-community/whisper-medium-mlx-8bit
+#   small       → mlx-community/whisper-small-mlx
+#   large-v3    → mlx-community/whisper-large-v3-mlx
+model: medium
+
+# auto, or ISO 639-1 code (en, fr, …)
+language: auto
+
+# archive — each video gets a folder under output_dir with transcripts + moved video
+# beside — outputs next to the source video (video stays in place)
+# mirror — under output_dir, mirroring input directory tree
+# flat   — all transcript files directly in output_dir (no per-video folders)
+output_mode: archive
+output_dir: ~/Transcripts
+
+# Speaker diarization (pyannote) — labels segments as Speaker 1, Speaker 2, …
+# GATED: hf auth login, accept terms, then:
+#   hf download pyannote/speaker-diarization-community-1
+# https://huggingface.co/pyannote/speaker-diarization-community-1
+# License: CC-BY-4.0 — see docs/HUGGINGFACE.md
+diarization: true
+diarization_pipeline: pyannote/speaker-diarization-community-1
+
+# Output formats: vtt (subtitles), srt, txt, json
+formats:
+  - vtt
+
+watch:
+  # Folders monitored by: transcripto watch
+  paths:
+    - ~/Movies
+  debounce_seconds: 2
+  extensions:
+    - .mov
+    - .mp4

@@ -1,0 +1,34 @@
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Environment and secrets
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Editors and local IDE
+.cursor/
+.idea/
+.vscode/
+
+# Logs and debug output
+*.log
+
+# User config (use config.yaml.example; real config lives in ~/.config/transcripto/)
+config/config.yaml
