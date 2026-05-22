@@ -8,15 +8,25 @@ cd "$ROOT"
 
 WHISPER_REPO="${WHISPER_REPO:-mlx-community/whisper-medium-mlx}"
 DIARIZATION_REPO="${DIARIZATION_REPO:-pyannote/speaker-diarization-community-1}"
-CONFIG_DIR="${HOME}/.config/ovs"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
+CONFIG_DIR="${XDG_CONFIG_HOME}/digg/ovs"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
+LEGACY_CONFIG="${HOME}/.config/ovs/config.yaml"
+OVS_CACHE_DIR="${XDG_CACHE_HOME}/digg/ovs"
 if [[ -n "${HF_HUB_CACHE:-}" ]]; then
   HF_HUB="$HF_HUB_CACHE"
 elif [[ -n "${HF_HOME:-}" ]]; then
   HF_HUB="${HF_HOME}/hub"
+elif [[ -d "${OVS_CACHE_DIR}/huggingface/hub" ]]; then
+  HF_HUB="${OVS_CACHE_DIR}/huggingface/hub"
 else
   HF_HUB="${HOME}/.cache/huggingface/hub"
 fi
+OVS_DATA_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/digg/ovs"
+CLI_NAME="offline-video-scribe"
+CLI_BIN="${HOME}/.local/bin/${CLI_NAME}"
+CLI_ALIAS_BIN="${HOME}/.local/bin/ovs"
 
 DRY_RUN=0
 ASSUME_YES=0
@@ -25,9 +35,9 @@ usage() {
   cat <<'EOF'
 Usage: ./uninstall.sh [options]
 
-Removes ovs (CLI + repo .venv). Prompts what else to delete:
+Removes offline-video-scribe (CLI + ovs symlink + repo .venv). Prompts what else to delete:
 
-  - Config (~/.config/ovs/config.yaml)
+  - Config (~/.config/digg/ovs/config.yaml)
   - Hugging Face model cache (ovs repos only)
   - Transcript output folder (from config, default ~/Transcripts)
 
@@ -109,10 +119,11 @@ fi
 WHISPER_CACHE="${HF_HUB}/$(repo_to_folder "$WHISPER_REPO")"
 DIARIZATION_CACHE="${HF_HUB}/$(repo_to_folder "$DIARIZATION_REPO")"
 
-echo "ovs uninstall"
+echo "Offline Video Scribe uninstall"
 echo ""
 echo "Will always remove (if present):"
-echo "  - uv tool: ovs (global CLI)"
+echo "  - uv tool: ${CLI_NAME}"
+echo "  - symlink: ${CLI_ALIAS_BIN} -> ${CLI_NAME}"
 echo "  - ${ROOT}/.venv"
 echo ""
 echo "You choose keep or delete for:"
@@ -136,8 +147,17 @@ if ask_yes_no "Delete config file?" "y"; then DELETE_CONFIG=1; fi
 if ask_yes_no "Delete Hugging Face model cache (both repos above)?" "n"; then DELETE_MODELS=1; fi
 if ask_yes_no "Delete transcript output directory?" "n"; then DELETE_OUTPUT=1; fi
 
-step "Removing ovs CLI (uv tool uninstall)"
-run uv tool uninstall ovs || true
+step "Removing CLI (uv tool uninstall + ovs symlink)"
+run uv tool uninstall ovs 2>/dev/null || true
+run uv tool uninstall "${CLI_NAME}" || true
+if [[ -L "$CLI_ALIAS_BIN" ]] || [[ -e "$CLI_ALIAS_BIN" ]]; then
+  run rm -f "$CLI_ALIAS_BIN"
+  echo "    removed ${CLI_ALIAS_BIN}"
+fi
+if [[ -d "${OVS_DATA_DIR}/tool" ]]; then
+  run rm -rf "${OVS_DATA_DIR}/tool"
+  echo "    removed ${OVS_DATA_DIR}/tool"
+fi
 
 step "Removing project virtualenv"
 if [[ -d "$ROOT/.venv" ]]; then
@@ -148,13 +168,19 @@ fi
 
 if [[ "$DELETE_CONFIG" == "1" ]]; then
   step "Removing config"
-  if [[ -f "$CONFIG_FILE" ]]; then
-    run rm -f "$CONFIG_FILE"
-  fi
+  for f in "$CONFIG_FILE" "$LEGACY_CONFIG"; do
+    if [[ -f "$f" ]]; then
+      run rm -f "$f"
+    fi
+  done
   if [[ "$DRY_RUN" != "1" ]] && [[ -d "$CONFIG_DIR" ]] && [[ -z "$(ls -A "$CONFIG_DIR" 2>/dev/null)" ]]; then
     run rmdir "$CONFIG_DIR"
   elif [[ "$DRY_RUN" == "1" ]] && [[ -d "$CONFIG_DIR" ]]; then
     echo "    [dry-run] rmdir $CONFIG_DIR  # if empty"
+  fi
+  legacy_dir="${HOME}/.config/ovs"
+  if [[ "$DRY_RUN" != "1" ]] && [[ -d "$legacy_dir" ]] && [[ -z "$(ls -A "$legacy_dir" 2>/dev/null)" ]]; then
+    run rmdir "$legacy_dir"
   fi
 else
   echo ""

@@ -11,10 +11,19 @@ def test_is_runtime_command():
     assert is_runtime_command(None) is False
 
 
-def test_apply_runtime_offline_env():
+def test_apply_runtime_offline_env(monkeypatch, tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("HF_HOME", raising=False)
+    monkeypatch.delenv("HF_HUB_CACHE", raising=False)
     apply_runtime_offline_env()
     assert os.environ.get("HF_HUB_OFFLINE") == "1"
     assert os.environ.get("HF_HUB_DISABLE_TELEMETRY") == "1"
+    assert os.environ.get("HF_HOME") == str(home / ".cache" / "digg" / "ovs" / "huggingface")
+    assert os.environ.get("HF_HUB_CACHE") == str(
+        home / ".cache" / "digg" / "ovs" / "huggingface" / "hub"
+    )
 
 
 @patch("ovs.cli.cmd_check", return_value=0)

@@ -7,6 +7,7 @@ from pathlib import Path
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+from ovs import CLI_NAME
 from ovs.config import AppConfig
 from ovs.diarization import load_diarization_pipeline
 from ovs.paths import OutputMode
@@ -54,7 +55,7 @@ class StableFileHandler(FileSystemEventHandler):
 
 def run_watch(cfg: AppConfig, *, force: bool = False, verbose: bool = False) -> int:
     if not cfg.watch_paths:
-        logger.error("no watch.paths configured; run ovs init")
+        logger.error("no watch.paths configured; run %s init", CLI_NAME)
         return 2
 
     job_queue: queue.Queue[Path] = queue.Queue()

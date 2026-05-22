@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass, field
 from importlib.resources import files
 from pathlib import Path
@@ -6,8 +5,16 @@ from pathlib import Path
 import yaml
 
 from ovs.paths import OutputMode
+from ovs.xdg import (
+    config_example_path,
+    default_config_path,
+    migrate_legacy_config,
+    migrate_legacy_config_example,
+    ovs_config_dir,
+    resolve_config_path,
+)
 
-DEFAULT_CONFIG_PATH = Path.home() / ".config" / "ovs" / "config.yaml"
+DEFAULT_CONFIG_PATH = default_config_path()
 _BUNDLED_EXAMPLE = "config.yaml.example"
 
 
@@ -58,9 +65,7 @@ class AppConfig:
 
 
 def load_config(path: Path | None = None) -> AppConfig:
-    cfg_path = path or Path(
-        os.environ.get("OVS_CONFIG", DEFAULT_CONFIG_PATH)
-    )
+    cfg_path = resolve_config_path(path)
     data = default_config_dict()
     if cfg_path.exists():
         loaded = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
@@ -91,9 +96,18 @@ def write_default_config(
     Returns (path, created). created is False when the file already exists and
     force was not set.
     """
-    cfg_path = path or DEFAULT_CONFIG_PATH
+    cfg_path = resolve_config_path(path)
+    existed_before = cfg_path.is_file()
+    migrated = migrate_legacy_config(cfg_path)
+    ovs_config_dir().mkdir(parents=True, exist_ok=True)
+    migrate_legacy_config_example()
+    example_path = config_example_path()
+    if not example_path.exists():
+        example_path.write_text(bundled_config_example_text(), encoding="utf-8")
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
-    if cfg_path.exists() and not force:
+    if cfg_path.exists() and not force and (existed_before or migrated is None):
         return cfg_path, False
+    if migrated is not None and not force:
+        return cfg_path, True
     cfg_path.write_text(bundled_config_example_text(), encoding="utf-8")
     return cfg_path, True

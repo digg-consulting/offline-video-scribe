@@ -1,15 +1,15 @@
-"""Detect models in the Hugging Face hub cache (~/.cache/huggingface/hub)."""
+"""Detect models in the Hugging Face hub cache (~/.cache/digg/ovs/huggingface/hub)."""
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
+
+from ovs.xdg import hf_hub_cache_dir as _hf_hub_cache_dir
 
 
 def hf_hub_cache_dir() -> Path:
     """Root of the HF hub cache (models--* directories)."""
-    hf_home = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
-    return Path(os.environ.get("HF_HUB_CACHE", hf_home / "hub"))
+    return _hf_hub_cache_dir()
 
 
 def repo_id_to_cache_folder(repo_id: str) -> str:

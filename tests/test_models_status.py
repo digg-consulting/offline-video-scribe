@@ -37,5 +37,5 @@ def test_models_prereq_help_mentions_hf_download():
     text = models_prereq_help(cfg)
     assert "hf download" in text
     assert "mlx-community/whisper-medium-mlx" in text
-    assert "ovs check" in text
+    assert "offline-video-scribe check" in text
     assert "models download" not in text

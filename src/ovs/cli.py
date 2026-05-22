@@ -3,7 +3,8 @@ import logging
 import sys
 from pathlib import Path
 
-from ovs import __version__
+from ovs import CLI_NAME, __version__
+from ovs.xdg import default_config_path, ensure_xdg_dirs
 from ovs.config import load_config, write_default_config
 from ovs.ffmpeg_util import FfmpegNotFoundError, require_ffmpeg
 from ovs.models_status import (
@@ -27,6 +28,7 @@ def _setup_logging(verbose: bool) -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> int:
+    ensure_xdg_dirs()
     dest = Path(args.config).expanduser() if args.config else None
     path, created = write_default_config(dest, force=args.force)
     if created:
@@ -40,7 +42,8 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def cmd_setup(args: argparse.Namespace) -> int:
     """Write config and verify offline prerequisites."""
-    print("=== ovs setup ===\n")
+    ensure_xdg_dirs()
+    print(f"=== {CLI_NAME} setup ===\n")
     cfg_path, created = write_default_config()
     if created:
         print(f"config: {cfg_path} (installed)")
@@ -77,7 +80,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         return 2
 
     if args.skip_model:
-        print("ovs: ready (model check skipped — dev/CI only)")
+        print(f"{CLI_NAME}: ready (model check skipped — dev/CI only)")
         return 0
 
     cfg = load_config(Path(args.config) if args.config else None)
@@ -110,7 +113,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     else:
         print("diarization: disabled")
 
-    print("ovs: ready (offline — local models verified)")
+    print(f"{CLI_NAME}: ready (offline — local models verified)")
     return 0
 
 
@@ -184,19 +187,19 @@ def cmd_watch(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="ovs")
+    p = argparse.ArgumentParser(prog=CLI_NAME)
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="command", required=True)
 
     init_p = sub.add_parser(
         "init",
-        help="Install default config at ~/.config/ovs/config.yaml",
+        help=f"Install default config at {default_config_path()}",
     )
     init_p.add_argument(
         "--config",
         type=str,
         default=None,
-        help="Destination path (default: ~/.config/ovs/config.yaml)",
+        help=f"Destination path (default: {default_config_path()})",
     )
     init_p.add_argument(
         "--force",

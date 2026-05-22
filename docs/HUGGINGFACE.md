@@ -2,7 +2,14 @@
 
 OVS (Offline Video Scribe) is **offline-only** at runtime. It does **not** download weights, store tokens, or contact huggingface.co during `check`, `transcribe`, or `watch`.
 
-Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/huggingface/hub`, then use `ovs`.
+Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/digg/ovs/huggingface/hub`, then use `offline-video-scribe`.
+
+When using `./install.sh`, `HF_HOME` is set automatically. For manual downloads:
+
+```bash
+export HF_HOME="${HF_HOME:-$HOME/.cache/digg/ovs/huggingface}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
+```
 
 ---
 
@@ -54,7 +61,7 @@ hf download mlx-community/whisper-medium-mlx \
 Confirm the weight file is full size (not an LFS pointer):
 
 ```bash
-ls -lh ~/.cache/huggingface/hub/models--mlx-community--whisper-medium-mlx/snapshots/*/weights.npz
+ls -lh ~/.cache/digg/ovs/huggingface/hub/models--mlx-community--whisper-medium-mlx/snapshots/*/weights.npz
 # expect ~1 GB for medium
 ```
 
@@ -67,17 +74,17 @@ hf download pyannote/speaker-diarization-community-1
 ### 6. Verify with OVS
 
 ```bash
-ovs check
-# or: ovs check --verbose
+offline-video-scribe check
+# or: offline-video-scribe check --verbose
 ```
 
 Expected last line:
 
 ```text
-ovs: ready (offline — local models verified)
+offline-video-scribe: ready (offline — local models verified)
 ```
 
-Weights live under `~/.cache/huggingface/hub` (not in the OVS git repo).
+Weights live under `~/.cache/digg/ovs/huggingface/hub` (not in the OVS git repo). OVS also reads a legacy cache at `~/.cache/huggingface/hub` if present.
 
 ---
 
@@ -90,7 +97,7 @@ hf auth login
 hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
 hf download pyannote/speaker-diarization-community-1
 
-ovs check
+offline-video-scribe check
 ```
 
 ---
@@ -105,18 +112,18 @@ ovs check
 | `model: large-v3` | `mlx-community/whisper-large-v3-mlx` | ~3 GB |
 | `diarization_pipeline` (default) | `pyannote/speaker-diarization-community-1` | **Gated** — accept terms first |
 
-After changing `model` or `diarization_pipeline` in `~/.config/ovs/config.yaml`, run the matching `hf download` commands, then `ovs check`.
+After changing `model` or `diarization_pipeline` in `~/.config/digg/ovs/config.yaml`, run the matching `hf download` commands, then `offline-video-scribe check`.
 
 ### Whisper-only (no diarization)
 
 ```yaml
-# ~/.config/ovs/config.yaml
+# ~/.config/digg/ovs/config.yaml
 diarization: false
 ```
 
 ```bash
 hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
-ovs check
+offline-video-scribe check
 ```
 
 ---
@@ -180,17 +187,17 @@ hf whoami
 |---------|-----|
 | `check` says whisper not ready, folder exists | Re-download with `--include "weights.npz"`; file should be ~1 GB, not ~100 bytes (LFS pointer) |
 | 403 on pyannote | Accept terms on the model page, then `hf download` again |
-| Wrong model in config | `hf download` the repo for your `model` / `diarization_pipeline`, then `ovs check` |
+| Wrong model in config | `hf download` the repo for your `model` / `diarization_pipeline`, then `offline-video-scribe check` |
 
 ```bash
-ovs check --verbose
+offline-video-scribe check --verbose
 ```
 
 ---
 
 ## What OVS verifies offline
 
-`ovs check` confirms:
+`offline-video-scribe check` confirms:
 
 - Whisper: `config.json` + full weight file (≥ 1 MB) under a hub **snapshot** directory
 - Diarization (if enabled): `config.yaml`, weight files, and a local pyannote load test

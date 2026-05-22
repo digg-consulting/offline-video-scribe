@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ovs import CLI_NAME
 from ovs.config import AppConfig
 from ovs.diarization import (
     DIARIZATION_PIPELINE_ID,
@@ -80,7 +81,7 @@ def models_prereq_help(cfg: AppConfig) -> str:
     lines.extend(
         [
             "",
-            "  ovs check",
+            f"  {CLI_NAME} check",
             "",
             "See docs/HUGGINGFACE.md",
         ]
