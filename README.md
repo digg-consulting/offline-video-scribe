@@ -2,7 +2,7 @@
 
 Turn a video file into `.txt`, `.srt`, and `.vtt` on your Mac. Everything runs locally; videos and transcripts stay **outside** this repo.
 
-**CLI:** `ovs`  
+**CLI:** `offline-video-scribe` (`ovs` → symlink in `~/.local/bin`)  
 **Design spec:** `~/Projects/docs/superpowers/specs/2026-05-20-transcripto-design.md`  
 **Prepare models (Hugging Face CLI):** [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)  
 **Future macOS installer (`/opt`):** [docs/INSTALLER.md](docs/INSTALLER.md)
@@ -14,11 +14,11 @@ Turn a video file into `.txt`, `.srt`, and `.vtt` on your Mac. Everything runs l
 | Phase | What | Network |
 |-------|------|---------|
 | **Prepare** (once) | `hf auth login`, accept gated terms, `hf download …` | Hugging Face CLI only |
-| **Use** | `ovs transcribe`, `watch` | **Offline only** — no HF calls, no tokens in OVS |
+| **Use** | `offline-video-scribe transcribe`, `watch` | **Offline only** — no HF calls, no tokens in OVS |
 
-OVS **does not download models** and **does not store Hugging Face tokens**. All weights must be in `~/.cache/huggingface/hub` before first use.
+OVS **does not download models** and **does not store Hugging Face tokens**. All weights must be in `~/.cache/digg/ovs/huggingface/hub` before first use (see [XDG layout](#xdg-layout) below).
 
-**One-time vs daily:** Run `ovs setup` or `ovs check` once after installing models. After that, use `ovs transcribe` only — it rechecks local models automatically and stops with clear errors if something is missing (you do not need `check` every day).
+**One-time vs daily:** Run `offline-video-scribe setup` or `check` once after installing models. After that, use `offline-video-scribe transcribe` only — it rechecks local models automatically and stops with clear errors if something is missing (you do not need `check` every day).
 
 ---
 
@@ -32,7 +32,7 @@ chmod +x install.sh    # once, if needed
 ./install.sh
 ```
 
-That script runs, in order: `uv sync` → `uv tool install` (CLI on PATH) → `brew install ffmpeg huggingface-cli` → `hf auth login` (if needed) → model downloads → `ovs setup`.
+That script runs, in order: `uv sync` → `uv tool install` (CLI on PATH) → `ln -sf` `ovs` → `offline-video-scribe` → `brew install ffmpeg huggingface-cli` → `hf auth login` (if needed) → model downloads → `offline-video-scribe setup`.
 
 You will be prompted once for HF login; open the pyannote model page in the browser when the script asks (gated model). Re-run `./install.sh` if a download fails after accepting terms.
 
@@ -44,14 +44,14 @@ Manual steps and troubleshooting: [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md).
 ./uninstall.sh
 ```
 
-Prompts you to **keep or delete** config, Hugging Face model cache, and transcript output. Always removes the `ovs` CLI and repo `.venv`. Does not remove Homebrew packages, `hf` login, or the git repo.
+Prompts you to **keep or delete** config, Hugging Face model cache, and transcript output. Always removes the `offline-video-scribe` CLI, `ovs` symlink, and repo `.venv`. Does not remove Homebrew packages, `hf` login, or the git repo.
 
 ```bash
 ./uninstall.sh --dry-run   # preview
 ./uninstall.sh -y          # defaults: remove config; keep models & transcripts
 ```
 
-**Already have models cached?** The script skips `hf download` when `ovs check` passes.
+**Already have models cached?** The script skips `hf download` when `offline-video-scribe check` passes.
 
 **Whisper-only** (no diarization): set `diarization: false` in config, then `SKIP_HF=1 ./install.sh` after Whisper is cached, or edit repos before install:
 
@@ -61,6 +61,22 @@ WHISPER_REPO=mlx-community/whisper-small-mlx ./install.sh
 
 ---
 
+## XDG layout
+
+OVS follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) under the `digg/ovs` namespace:
+
+| Purpose | Path |
+|---------|------|
+| Config, preferences, settings | `~/.config/digg/ovs/` (`config.yaml`, `config.yaml.example`) |
+| Cache (HF models) | `~/.cache/digg/ovs/huggingface/hub` |
+| Data (tool install, libraries) | `~/.local/share/digg/ovs/tool/` |
+| CLI executable | `~/.local/bin/offline-video-scribe` (`ovs` → symlink) |
+
+`./install.sh` sets `HF_HOME`, `UV_TOOL_DIR`, and `PATH` accordingly. Existing installs under `~/.config/ovs` or `~/.cache/huggingface` are still detected until you migrate or re-download.
+
+Override config: `export OVS_CONFIG=/path/to/config.yaml`
+
+---
 
 ## Prerequisites checklist
 
@@ -72,7 +88,7 @@ WHISPER_REPO=mlx-community/whisper-small-mlx ./install.sh
 | **Gated model access** | Open [pyannote/speaker-diarization-community-1](https://huggingface.co/pyannote/speaker-diarization-community-1) → **Agree** (same HF account) |
 | Download Whisper | `hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"` |
 | Download diarization | `hf download pyannote/speaker-diarization-community-1` |
-| Config + verify | `ovs setup` or `ovs check` |
+| Config + verify | `offline-video-scribe setup` or `check` |
 
 Expected `check` output when ready:
 
@@ -83,10 +99,10 @@ pyannote.audio: ok
 model whisper/medium (mlx-community/whisper-medium-mlx): ready
 model diarization (pyannote/speaker-diarization-community-1): ready
 diarization: enabled (pyannote/speaker-diarization-community-1)
-ovs: ready (offline — local models verified)
+offline-video-scribe: ready (offline — local models verified)
 ```
 
-**Folder exists but `check` says not ready?** Hugging Face may have only stored LFS pointers (~100 bytes). Run `ovs check --verbose`, then re-download:
+**Folder exists but `check` says not ready?** Hugging Face may have only stored LFS pointers (~100 bytes). Run `offline-video-scribe check --verbose`, then re-download:
 
 ```bash
 hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
@@ -99,13 +115,13 @@ hf download pyannote/speaker-diarization-community-1
 
 ## Daily use (one command)
 
-After the one-time prepare + `ovs setup` above:
+After the one-time prepare + `offline-video-scribe setup` above:
 
 ```bash
-ovs transcribe ~/Movies/your-recording.mov
+offline-video-scribe transcribe ~/Movies/your-recording.mov
 ```
 
-Run `ovs check` again only if you change `model` in config, re-download weights, or something fails.
+Run `offline-video-scribe check` again only if you change `model` in config, re-download weights, or something fails.
 
 Default **`archive`** mode: one folder under `output_dir` with the video + transcripts:
 
@@ -156,7 +172,7 @@ hf download mlx-community/whisper-large-v3-mlx --include "config.json" --include
 hf download pyannote/speaker-diarization-community-1
 ```
 
-Then `ovs check`. See [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md) for the full table and troubleshooting.
+Then `offline-video-scribe check`. See [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md) for the full table and troubleshooting.
 
 ---
 
@@ -167,9 +183,9 @@ Then `ovs check`. See [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md) for the full ta
 
 **Output modes:** `archive` (default), `beside`, `mirror`, `flat` — see `config/config.yaml.example`.
 
-**Without activating venv:** `uv run ovs …` from the repo directory, or `./bin/ovs …`.
+**Without activating venv:** `uv run offline-video-scribe …` from the repo directory, or `./bin/offline-video-scribe …`.
 
-**Global CLI:** `uv tool install -e .` (installs the `ovs` command)
+**Global CLI:** `./install.sh` or `uv tool install -e .` plus `ln -sf` — installs `offline-video-scribe`; `~/.local/bin/ovs` points at it
 
 **Developers:** `pytest -v`
 

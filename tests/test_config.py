@@ -9,6 +9,7 @@ from ovs.config import (
     load_config,
     write_default_config,
 )
+from ovs.xdg import config_example_path, default_config_path
 
 
 def test_bundled_example_is_loadable():
@@ -32,12 +33,18 @@ def test_default_config_dict_matches_example():
     assert d["diarization"] is True
 
 
-def test_write_default_config_installs(tmp_path: Path):
-    dest = tmp_path / "config.yaml"
+def test_write_default_config_installs(tmp_path: Path, monkeypatch):
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    dest = default_config_path()
     path, created = write_default_config(dest)
     assert created is True
     assert path == dest
     assert "formats:" in dest.read_text(encoding="utf-8")
+    example = config_example_path()
+    assert example.is_file()
+    assert example.parent == dest.parent
     _, again = write_default_config(dest)
     assert again is False
 

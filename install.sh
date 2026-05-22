@@ -7,6 +7,22 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
+# XDG layout (see src/ovs/xdg.py)
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
+OVS_CONFIG_DIR="${XDG_CONFIG_HOME}/digg/ovs"
+OVS_CACHE_DIR="${XDG_CACHE_HOME}/digg/ovs"
+OVS_DATA_DIR="${XDG_DATA_HOME}/digg/ovs"
+export HF_HOME="${HF_HOME:-${OVS_CACHE_DIR}/huggingface}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-${HF_HOME}/hub}"
+export UV_TOOL_DIR="${UV_TOOL_DIR:-${OVS_DATA_DIR}/tool}"
+export PATH="${HOME}/.local/bin:${PATH}"
+
+CLI_NAME="offline-video-scribe"
+CLI_BIN="${HOME}/.local/bin/${CLI_NAME}"
+CLI_ALIAS_BIN="${HOME}/.local/bin/ovs"
+
 WHISPER_REPO="${WHISPER_REPO:-mlx-community/whisper-medium-mlx}"
 DIARIZATION_REPO="${DIARIZATION_REPO:-pyannote/speaker-diarization-community-1}"
 PYANNOTE_GATE_URL="https://huggingface.co/pyannote/speaker-diarization-community-1"
@@ -27,8 +43,16 @@ need_cmd uv
 step "Installing Python dependencies (uv sync)"
 uv sync
 
-step "Installing OVS on PATH (uv tool install)"
+step "Installing Offline Video Scribe on PATH (uv tool install)"
+uv tool uninstall ovs 2>/dev/null || true
 uv tool install -e .
+if [[ ! -x "$CLI_BIN" ]]; then
+  echo "Expected executable at ${CLI_BIN} after uv tool install" >&2
+  exit 1
+fi
+ln -sf "$CLI_BIN" "$CLI_ALIAS_BIN"
+echo "    ${CLI_BIN}"
+echo "    ${CLI_ALIAS_BIN} -> ${CLI_NAME}"
 
 step "Homebrew tools (ffmpeg + Hugging Face CLI)"
 need_cmd brew
@@ -51,11 +75,11 @@ if [[ "$SKIP_HF" != "1" ]]; then
     echo "    Already logged in: $(hf whoami 2>/dev/null | head -1 || true)"
   fi
 
-  step "ovs config"
-  ovs init
+  step "${CLI_NAME} config"
+  "$CLI_NAME" init
 
   step "Checking if models are already cached"
-  if ovs check >/dev/null 2>&1; then
+  if "$CLI_NAME" check >/dev/null 2>&1; then
     echo "    Models already ready — skipping hf download."
   else
     echo ""
@@ -76,24 +100,25 @@ if [[ "$SKIP_HF" != "1" ]]; then
       echo "  2. Agree to the model terms (logged in as the same user as hf auth login)" >&2
       echo "  3. Re-run: ./install.sh" >&2
       echo "" >&2
-      echo "Or disable diarization in ~/.config/ovs/config.yaml and re-run with:" >&2
+      echo "Or disable diarization in ${OVS_CONFIG_DIR}/config.yaml and re-run with:" >&2
       echo "  SKIP_HF=1 ./install.sh   # only if you already have Whisper cached" >&2
       exit 1
     fi
   fi
 else
   step "Skipping Hugging Face downloads (SKIP_HF=1)"
-  ovs init
+  "$CLI_NAME" init
 fi
 
-step "ovs setup (config + offline verification)"
-ovs setup
+step "${CLI_NAME} setup (config + offline verification)"
+"$CLI_NAME" setup
 
 echo ""
 echo "Done. One-time install complete."
 echo ""
 echo "Daily use:"
-echo "  ovs transcribe /path/to/video.mov"
+echo "  ${CLI_NAME} transcribe /path/to/video.mov"
+echo "  # shortcut: ovs -> ${CLI_NAME}"
 echo ""
 echo "Docs: docs/HUGGINGFACE.md"
 echo "Uninstall: ./uninstall.sh"

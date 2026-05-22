@@ -75,7 +75,7 @@ def test_whisper_snapshot_path_returns_snapshot_dir(tmp_path, monkeypatch):
 def test_model_prereq_help_mentions_hf_download():
     help_text = model_prereq_help("medium")
     assert "hf download" in help_text
-    assert "ovs check" in help_text
+    assert "offline-video-scribe check" in help_text
     assert "whisper-medium-mlx" in help_text
 
 

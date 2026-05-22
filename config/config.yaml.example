@@ -1,6 +1,8 @@
-# OVS (Offline Video Scribe) — user config
-# Install:  ovs init
-# Path:     ~/.config/ovs/config.yaml
+# OVS (Offline Video Scribe) — user config, preferences, and settings
+# Install:  offline-video-scribe init
+# Directory: ~/.config/digg/ovs/
+#   config.yaml         — active settings (created by offline-video-scribe init)
+#   config.yaml.example — reference copy (updated on init --force)
 # Override:  export OVS_CONFIG=/path/to/config.yaml
 #
 # Models must be pre-downloaded with the Hugging Face CLI (OVS is offline-only).
@@ -10,7 +12,7 @@
 #   hf auth login
 #   hf download mlx-community/whisper-medium-mlx --include "config.json" --include "weights.npz"
 #   hf download pyannote/speaker-diarization-community-1   # after accepting gated terms
-#   ovs check
+#   offline-video-scribe check
 
 # Whisper model (see hf download commands in docs/HUGGINGFACE.md per option)
 #   medium      → mlx-community/whisper-medium-mlx
@@ -42,7 +44,7 @@ formats:
   - vtt
 
 watch:
-  # Folders monitored by: ovs watch
+  # Folders monitored by: offline-video-scribe watch
   paths:
     - ~/Movies
   debounce_seconds: 2

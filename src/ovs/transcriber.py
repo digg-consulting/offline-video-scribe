@@ -2,6 +2,7 @@ from pathlib import Path
 
 import mlx_whisper
 
+from ovs import CLI_NAME
 from ovs.models import Segment, TranscriptResult
 
 MODEL_REPOS = {
@@ -73,7 +74,7 @@ Prepare with the Hugging Face CLI (see docs/HUGGINGFACE.md):
 
   hf auth login
   hf download {repo} --include "config.json" --include "weights.npz"
-  ovs check --model {model}
+  {CLI_NAME} check --model {model}
 """
 
 

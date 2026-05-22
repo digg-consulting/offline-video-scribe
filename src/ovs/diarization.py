@@ -8,6 +8,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from ovs import CLI_NAME
 from ovs.models import Segment, TranscriptResult
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ Prepare with the Hugging Face CLI (see docs/HUGGINGFACE.md):
   {HF_ACCEPT_URL}
 
   hf download {DIARIZATION_PIPELINE_ID}
-  ovs check
+  {CLI_NAME} check
 """
 
 

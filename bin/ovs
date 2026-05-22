@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Run OVS from the repo without activating .venv (requires: uv sync).
+# Convenience alias — same as bin/offline-video-scribe (see ~/.local/bin/ovs symlink after install).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
-exec uv run ovs "$@"
+exec "$ROOT/bin/offline-video-scribe" "$@"
