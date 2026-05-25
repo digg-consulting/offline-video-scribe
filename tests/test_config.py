@@ -16,7 +16,7 @@ def test_bundled_example_is_loadable():
     text = bundled_config_example_text()
     data = yaml.safe_load(text)
     assert data["model"] == "medium"
-    assert data["formats"] == ["vtt"]
+    assert data["formats"] == ["vtt", "txt"]
     assert data["diarization"] is True
 
 
@@ -29,7 +29,7 @@ def test_bundled_example_available_from_repo_or_package():
 def test_default_config_dict_matches_example():
     d = default_config_dict()
     assert d["output_mode"] == "archive"
-    assert d["formats"] == ["vtt"]
+    assert d["formats"] == ["vtt", "txt"]
     assert d["diarization"] is True
 
 

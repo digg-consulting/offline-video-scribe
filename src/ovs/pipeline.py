@@ -7,6 +7,7 @@ from ovs.diarization import apply_diarization, load_diarization_pipeline, run_di
 from ovs.ffmpeg_util import extract_audio_wav, wav_duration_seconds
 from ovs.paths import (
     OutputMode,
+    effective_output_formats,
     move_video_to_archive,
     output_paths_for,
     should_skip,
@@ -67,16 +68,17 @@ def run_job(
     diarization_pipeline: Any | None = None,
 ) -> str:
     """Returns: 'ok' | 'skipped' | 'failed'"""
+    formats = effective_output_formats(cfg.formats)
     out_paths = output_paths_for(
         video,
         output_mode=cfg.output_mode,
         output_dir=cfg.output_dir,
-        formats=cfg.formats,
+        formats=formats,
         mirror_root=mirror_root,
     )
     if should_skip(
         out_paths,
-        formats=cfg.formats,
+        formats=formats,
         force=force,
         video_path=video,
         output_mode=cfg.output_mode,
@@ -111,13 +113,13 @@ def run_job(
             )
             turns = run_diarization(wav, pipeline, duration_s=duration_s)
             result = apply_diarization(result, turns)
-        write_formats(result.text, result.segments, out_paths, formats=cfg.formats)
+        write_formats(result.text, result.segments, out_paths, formats=formats)
         if cfg.output_mode == OutputMode.ARCHIVE:
             dest = move_video_to_archive(video, out_paths)
             logger.info("archived video: %s", dest)
         logger.info(
             "wrote %s",
-            ", ".join(str(out_paths[f]) for f in cfg.formats),
+            ", ".join(str(out_paths[f]) for f in formats),
         )
         return "ok"
     except Exception:

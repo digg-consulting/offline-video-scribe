@@ -2,6 +2,7 @@ from pathlib import Path
 
 from ovs.models import Segment
 from ovs.writers import (
+    backup_existing_file,
     format_full_text,
     format_srt,
     format_vtt,
@@ -126,6 +127,24 @@ def test_format_full_text_with_speakers():
     text = format_full_text(segs)
     assert "Speaker 1: Hi." in text
     assert "Speaker 2: Hey." in text
+
+
+def test_backup_existing_file_creates_bak(tmp_path: Path):
+    target = tmp_path / "a.vtt"
+    target.write_text("WEBVTT\n", encoding="utf-8")
+    backup = backup_existing_file(target)
+    assert backup == tmp_path / "a.vtt.bak"
+    assert backup.read_text(encoding="utf-8") == "WEBVTT\n"
+
+
+def test_write_formats_backs_up_before_overwrite(tmp_path: Path):
+    vtt = tmp_path / "a.vtt"
+    vtt.write_text("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nold\n", encoding="utf-8")
+    out = {"vtt": vtt, "txt": tmp_path / "a.txt"}
+    write_formats("", _segments(), out, formats=["vtt", "txt"])
+    assert (tmp_path / "a.vtt.bak").is_file()
+    assert "old" in (tmp_path / "a.vtt.bak").read_text(encoding="utf-8")
+    assert "Hello world." in vtt.read_text(encoding="utf-8")
 
 
 def test_write_formats_creates_files(tmp_path: Path):

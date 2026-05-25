@@ -3,10 +3,17 @@ from pathlib import Path
 from ovs.paths import (
     OutputMode,
     archive_dir_for,
+    effective_output_formats,
     move_video_to_archive,
     output_paths_for,
     should_skip,
 )
+
+
+def test_effective_output_formats_adds_txt_with_vtt():
+    assert effective_output_formats(["vtt"]) == ["vtt", "txt"]
+    assert effective_output_formats(["txt", "vtt"]) == ["txt", "vtt"]
+    assert effective_output_formats(["srt"]) == ["srt"]
 
 
 def test_beside_mode_paths(tmp_path: Path):

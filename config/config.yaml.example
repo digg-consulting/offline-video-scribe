@@ -40,8 +40,10 @@ diarization: true
 diarization_pipeline: pyannote/speaker-diarization-community-1
 
 # Output formats: vtt (subtitles), srt, txt, json
+# TXT is always written when vtt is listed (derived from VTT cues).
 formats:
   - vtt
+  - txt
 
 watch:
   # Folders monitored by: offline-video-scribe watch

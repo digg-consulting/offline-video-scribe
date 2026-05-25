@@ -10,6 +10,14 @@ class OutputMode(str, Enum):
     ARCHIVE = "archive"
 
 
+def effective_output_formats(formats: list[str]) -> list[str]:
+    """TXT is derived from VTT; include it whenever VTT is requested."""
+    result = list(formats)
+    if "vtt" in result and "txt" not in result:
+        result.append("txt")
+    return result
+
+
 def archive_dir_for(video: Path, output_dir: Path) -> Path:
     """
     Per-video folder under output_dir (e.g. ~/Transcripts/recording/).

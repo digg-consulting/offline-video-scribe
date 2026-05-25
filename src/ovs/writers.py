@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -156,6 +157,19 @@ def vtt_to_txt_diarized(vtt_content: str) -> str:
     return "\n\n".join(blocks).strip() + "\n"
 
 
+def backup_existing_file(path: Path) -> Path | None:
+    """Copy an existing output file to .bak (or .bak-2, …) before overwriting."""
+    if not path.is_file():
+        return None
+    backup = path.with_suffix(f"{path.suffix}.bak")
+    n = 2
+    while backup.exists():
+        backup = path.with_suffix(f"{path.suffix}.bak-{n}")
+        n += 1
+    shutil.copy2(path, backup)
+    return backup
+
+
 def write_formats(
     full_text: str,
     segments: list[Segment],
@@ -173,6 +187,7 @@ def write_formats(
     for fmt in formats:
         path = output_paths[fmt]
         path.parent.mkdir(parents=True, exist_ok=True)
+        backup_existing_file(path)
         if fmt == "vtt":
             path.write_text(vtt_content, encoding="utf-8")
         elif fmt == "txt":
