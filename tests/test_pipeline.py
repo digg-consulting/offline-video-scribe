@@ -6,6 +6,62 @@ from ovs.paths import OutputMode
 from ovs.pipeline import discover_videos, run_job
 
 
+def test_discover_includes_explicit_file_under_output_dir(tmp_path: Path):
+    out_root = tmp_path / "Transcripts"
+    video = out_root / "session" / "session.mov"
+    video.parent.mkdir(parents=True)
+    video.write_bytes(b"v")
+    found = discover_videos(
+        video,
+        extensions=[".mov"],
+        recursive=False,
+        exclude_under=out_root,
+    )
+    assert found == [video]
+
+
+def test_discover_includes_archive_folder_when_path_is_that_folder(tmp_path: Path):
+    out_root = tmp_path / "Transcripts"
+    video = out_root / "session" / "session.mov"
+    video.parent.mkdir(parents=True)
+    video.write_bytes(b"v")
+    found = discover_videos(
+        video.parent,
+        extensions=[".mov"],
+        recursive=False,
+        exclude_under=out_root,
+    )
+    assert found == [video]
+
+
+def test_discover_excludes_whole_output_dir_scan(tmp_path: Path):
+    out_root = tmp_path / "Transcripts"
+    archived = out_root / "done" / "done.mov"
+    archived.parent.mkdir(parents=True)
+    archived.write_bytes(b"v")
+    found = discover_videos(
+        out_root,
+        extensions=[".mov"],
+        recursive=True,
+        exclude_under=out_root,
+    )
+    assert archived not in found
+
+
+def test_discover_force_scans_under_output_dir(tmp_path: Path):
+    out_root = tmp_path / "Transcripts"
+    archived = out_root / "done" / "done.mov"
+    archived.parent.mkdir(parents=True)
+    archived.write_bytes(b"v")
+    found = discover_videos(
+        out_root,
+        extensions=[".mov"],
+        recursive=True,
+        exclude_under=None,
+    )
+    assert archived in found
+
+
 def test_discover_excludes_archive_output_dir(tmp_path: Path):
     out_root = tmp_path / "Transcripts"
     archived = out_root / "done" / "done.mov"

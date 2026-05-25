@@ -3,9 +3,9 @@
 Turn a video file into `.txt`, `.srt`, and `.vtt` on your Mac. Everything runs locally; videos and transcripts stay **outside** this repo.
 
 **CLI:** `offline-video-scribe` (`ovs` → symlink in `~/.local/bin`)  
-**Design spec:** `~/Projects/docs/superpowers/specs/2026-05-20-transcripto-design.md`  
-**Prepare models (Hugging Face CLI):** [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)  
-**Future macOS installer (`/opt`):** [docs/INSTALLER.md](docs/INSTALLER.md)
+**Install (release tarball, no git clone):** [docs/INSTALL.md](docs/INSTALL.md)  
+**Distribution notes:** [docs/INSTALLER.md](docs/INSTALLER.md)  
+**Prepare models (Hugging Face CLI):** [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)
 
 ---
 
@@ -16,27 +16,37 @@ Turn a video file into `.txt`, `.srt`, and `.vtt` on your Mac. Everything runs l
 | **Prepare** (once) | `hf auth login`, accept gated terms, `hf download …` | Hugging Face CLI only |
 | **Use** | `offline-video-scribe transcribe`, `watch` | **Offline only** — no HF calls, no tokens in OVS |
 
-OVS **does not download models** and **does not store Hugging Face tokens**. All weights must be in `~/.cache/digg/ovs/huggingface/hub` before first use (see [XDG layout](#xdg-layout) below).
+OVS **does not download models** and **does not store Hugging Face tokens**. All weights must be in `~/.cache/huggingface/hub` before first use (see [XDG layout](#xdg-layout) below).
 
 **One-time vs daily:** Run `offline-video-scribe setup` or `check` once after installing models. After that, use `offline-video-scribe transcribe` only — it rechecks local models automatically and stops with clear errors if something is missing (you do not need `check` every day).
 
 ---
 
-## One-time install (recommended)
+## Install (no git clone)
 
-From the repo root (needs [uv](https://docs.astral.sh/uv/) and [Homebrew](https://brew.sh/)):
+**End users:** download a release tarball or use the bootstrap script — see **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ```bash
-cd /path/to/offline-video-scribe
-chmod +x install.sh    # once, if needed
-./install.sh
+# Pin a version (recommended)
+curl -fsSL https://raw.githubusercontent.com/digg-consulting/offline-video-scribe/main/scripts/bootstrap-install.sh | OVS_VERSION=0.1.0 bash
 ```
 
-That script runs, in order: `uv sync` → `uv tool install` (CLI on PATH) → `ln -sf` `ovs` → `offline-video-scribe` → `brew install ffmpeg huggingface-cli` → `hf auth login` (if needed) → model downloads → `offline-video-scribe setup`.
+Or download `offline-video-scribe-<version>-macos.tar.gz` from [GitHub Releases](https://github.com/digg-consulting/offline-video-scribe/releases), extract, and run `./install.sh`.
 
-You will be prompted once for HF login; open the pyannote model page in the browser when the script asks (gated model). Re-run `./install.sh` if a download fails after accepting terms.
+**Developers:** clone this repo and run `./install.sh` from the root (includes test dependencies).
 
-Manual steps and troubleshooting: [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md).
+`install.sh` installs the CLI (`uv sync`, `uv tool install`, `ovs` symlink). It **asks** before Homebrew packages (`ffmpeg`, `huggingface-cli`) and before downloading models. `offline-video-scribe check` / `transcribe` enforce the model cache at runtime.
+
+| Script | Purpose |
+|--------|---------|
+| `./install.sh` | First-time install (prompts for brew/models) |
+| `./update.sh` | Upgrade CLI (new release tarball or `git pull` in clone) — [docs/INSTALL.md#upgrade](docs/INSTALL.md#upgrade) |
+| `./install.sh -y` | Non-interactive install |
+| `SKIP_HF=1 ./install.sh` | Skip Hugging Face prompts |
+
+**Maintainers — publish a release:** [docs/RELEASE.md](docs/RELEASE.md) (`./scripts/publish-release.sh` pushes `v*` tag → GitHub Actions uploads tarball)
+
+Manual model steps: [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md).
 
 ### Uninstall
 
@@ -63,16 +73,16 @@ WHISPER_REPO=mlx-community/whisper-small-mlx ./install.sh
 
 ## XDG layout
 
-OVS follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) under the `digg/ovs` namespace:
+OVS follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) under the `digg/offline-video-scribe` namespace:
 
 | Purpose | Path |
 |---------|------|
-| Config, preferences, settings | `~/.config/digg/ovs/` (`config.yaml`, `config.yaml.example`) |
-| Cache (HF models) | `~/.cache/digg/ovs/huggingface/hub` |
-| Data (tool install, libraries) | `~/.local/share/digg/ovs/tool/` |
+| Config, preferences, settings | `~/.config/digg/offline-video-scribe/` (`config.yaml`, `config.yaml.example`) |
+| Cache (HF models) | `~/.cache/huggingface/hub` |
+| Data (uv tool install) | `~/.local/share/digg/offline-video-scribe/` |
 | CLI executable | `~/.local/bin/offline-video-scribe` (`ovs` → symlink) |
 
-`./install.sh` sets `HF_HOME`, `UV_TOOL_DIR`, and `PATH` accordingly. Existing installs under `~/.config/ovs` or `~/.cache/huggingface` are still detected until you migrate or re-download.
+`./install.sh` sets `HF_HOME` (default `~/.cache/huggingface`), `UV_TOOL_DIR` to the data path above, and `PATH` accordingly. Legacy dirs under `digg/ovs` are still read for config and HF cache when present.
 
 Override config: `export OVS_CONFIG=/path/to/config.yaml`
 
@@ -80,9 +90,11 @@ Override config: `export OVS_CONFIG=/path/to/config.yaml`
 
 ## Prerequisites checklist
 
+During `./install.sh`, you are **prompted** before installing Homebrew packages and before downloading models (see [docs/INSTALL.md](docs/INSTALL.md)). Or prepare manually:
+
 | Step | Command / action |
 |------|------------------|
-| ffmpeg | `brew install ffmpeg` |
+| ffmpeg | `brew install ffmpeg` (or agree when `install.sh` asks) |
 | Hugging Face CLI | `brew install huggingface-cli` (or `pip install -U "huggingface_hub[cli]"`) |
 | HF login | `hf auth login` then `hf whoami` — [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md) |
 | **Gated model access** | Open [pyannote/speaker-diarization-community-1](https://huggingface.co/pyannote/speaker-diarization-community-1) → **Agree** (same HF account) |
@@ -131,7 +143,7 @@ Default **`archive`** mode: one folder under `output_dir` with the video + trans
   your-recording.vtt
 ```
 
-VTT/SRT use **Speaker 1**, **Speaker 2**, … (diarization on by default).
+**`.vtt`** is the closed-caption source of truth: per-segment `start --> end` cues with **Speaker 1**, **Speaker 2**, … (diarization on by default). **`.txt`** is derived from that same VTT content — without diarization it mirrors the VTT cue layout; with diarization it is reformatted for reading (`M:SS | Speaker N` headers, consecutive same-speaker cues bundled). SRT uses the same per-cue speaker labels as VTT.
 
 **Disable diarization:** `diarization: false` in config, or `--no-diarization`.
 
@@ -185,9 +197,11 @@ Then `offline-video-scribe check`. See [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md
 
 **Without activating venv:** `uv run offline-video-scribe …` from the repo directory, or `./bin/offline-video-scribe …`.
 
-**Global CLI:** `./install.sh` or `uv tool install -e .` plus `ln -sf` — installs `offline-video-scribe`; `~/.local/bin/ovs` points at it
+**Global CLI:** `./install.sh` (clone or release tarball), or `uv tool install -e .` from a clone
 
-**Developers:** `pytest -v`
+**Release:** `./scripts/make-release.sh` — publish `dist/*.tar.gz` on a GitHub Release (`v*` tag)
+
+**Developers:** `pytest -v` (from git clone; `uv sync` includes dev deps)
 
 </details>
 

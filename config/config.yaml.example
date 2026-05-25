@@ -1,6 +1,6 @@
 # OVS (Offline Video Scribe) — user config, preferences, and settings
-# Install:  offline-video-scribe init
-# Directory: ~/.config/digg/ovs/
+# Install:  see docs/INSTALL.md (release tarball) or ./install.sh from a clone
+# Directory: ~/.config/digg/offline-video-scribe/
 #   config.yaml         — active settings (created by offline-video-scribe init)
 #   config.yaml.example — reference copy (updated on init --force)
 # Override:  export OVS_CONFIG=/path/to/config.yaml

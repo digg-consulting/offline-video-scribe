@@ -1,13 +1,15 @@
-# Hugging Face: prepare models (bootstrap only)
+# Hugging Face: prepare models
 
 OVS (Offline Video Scribe) is **offline-only** at runtime. It does **not** download weights, store tokens, or contact huggingface.co during `check`, `transcribe`, or `watch`.
 
-Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/digg/ovs/huggingface/hub`, then use `offline-video-scribe`.
+Use the **Hugging Face CLI** (`hf`) once to populate `~/.cache/huggingface/hub`, then use `offline-video-scribe`.
 
-When using `./install.sh`, `HF_HOME` is set automatically. For manual downloads:
+**Install:** [INSTALL.md](INSTALL.md) — `install.sh` **asks** before downloading models; you can skip and follow this guide instead.
+
+When using `./install.sh`, `HF_HOME` defaults to `~/.cache/huggingface`. For manual downloads:
 
 ```bash
-export HF_HOME="${HF_HOME:-$HOME/.cache/digg/ovs/huggingface}"
+export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
 ```
 
@@ -61,7 +63,7 @@ hf download mlx-community/whisper-medium-mlx \
 Confirm the weight file is full size (not an LFS pointer):
 
 ```bash
-ls -lh ~/.cache/digg/ovs/huggingface/hub/models--mlx-community--whisper-medium-mlx/snapshots/*/weights.npz
+ls -lh ~/.cache/huggingface/hub/models--mlx-community--whisper-medium-mlx/snapshots/*/weights.npz
 # expect ~1 GB for medium
 ```
 
@@ -84,7 +86,7 @@ Expected last line:
 offline-video-scribe: ready (offline — local models verified)
 ```
 
-Weights live under `~/.cache/digg/ovs/huggingface/hub` (not in the OVS git repo). OVS also reads a legacy cache at `~/.cache/huggingface/hub` if present.
+Weights live under `~/.cache/huggingface/hub` (not in the OVS git repo). OVS also reads a legacy cache at `~/.cache/digg/ovs/huggingface/hub` if the standard path is empty.
 
 ---
 
@@ -112,12 +114,12 @@ offline-video-scribe check
 | `model: large-v3` | `mlx-community/whisper-large-v3-mlx` | ~3 GB |
 | `diarization_pipeline` (default) | `pyannote/speaker-diarization-community-1` | **Gated** — accept terms first |
 
-After changing `model` or `diarization_pipeline` in `~/.config/digg/ovs/config.yaml`, run the matching `hf download` commands, then `offline-video-scribe check`.
+After changing `model` or `diarization_pipeline` in `~/.config/digg/offline-video-scribe/config.yaml`, run the matching `hf download` commands, then `offline-video-scribe check`.
 
 ### Whisper-only (no diarization)
 
 ```yaml
-# ~/.config/digg/ovs/config.yaml
+# ~/.config/digg/offline-video-scribe/config.yaml
 diarization: false
 ```
 

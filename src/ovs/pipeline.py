@@ -36,18 +36,25 @@ def discover_videos(
     if path.is_file():
         if path.suffix.lower() not in ext_set:
             return []
-        if exclude_under and _is_under(path, exclude_under):
-            return []
+        # Explicit file paths are never excluded (user chose this file deliberately).
         return [path]
+    scan_root = path.resolve()
     pattern = "**/*" if recursive else "*"
     root_exclude = exclude_under.resolve() if exclude_under else None
-    return sorted(
-        p
-        for p in path.glob(pattern)
-        if p.is_file()
-        and p.suffix.lower() in ext_set
-        and (root_exclude is None or not _is_under(p, root_exclude))
-    )
+
+    def _included(video: Path) -> bool:
+        if video.suffix.lower() not in ext_set:
+            return False
+        if root_exclude is None or not _is_under(video, root_exclude):
+            return True
+        # User named a specific archive folder under output_dir (not the whole tree).
+        try:
+            scan_root.relative_to(root_exclude)
+            return scan_root != root_exclude
+        except ValueError:
+            return False
+
+    return sorted(p for p in path.glob(pattern) if p.is_file() and _included(p))
 
 
 def run_job(

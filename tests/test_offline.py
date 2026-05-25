@@ -20,10 +20,8 @@ def test_apply_runtime_offline_env(monkeypatch, tmp_path):
     apply_runtime_offline_env()
     assert os.environ.get("HF_HUB_OFFLINE") == "1"
     assert os.environ.get("HF_HUB_DISABLE_TELEMETRY") == "1"
-    assert os.environ.get("HF_HOME") == str(home / ".cache" / "digg" / "ovs" / "huggingface")
-    assert os.environ.get("HF_HUB_CACHE") == str(
-        home / ".cache" / "digg" / "ovs" / "huggingface" / "hub"
-    )
+    assert os.environ.get("HF_HOME") == str(home / ".cache" / "huggingface")
+    assert os.environ.get("HF_HUB_CACHE") == str(home / ".cache" / "huggingface" / "hub")
 
 
 @patch("ovs.cli.cmd_check", return_value=0)

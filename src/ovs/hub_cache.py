@@ -1,4 +1,4 @@
-"""Detect models in the Hugging Face hub cache (~/.cache/digg/ovs/huggingface/hub)."""
+"""Detect models in the Hugging Face hub cache (~/.cache/huggingface/hub)."""
 
 from __future__ import annotations
 

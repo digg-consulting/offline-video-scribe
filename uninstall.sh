@@ -10,20 +10,26 @@ WHISPER_REPO="${WHISPER_REPO:-mlx-community/whisper-medium-mlx}"
 DIARIZATION_REPO="${DIARIZATION_REPO:-pyannote/speaker-diarization-community-1}"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/.cache}"
-CONFIG_DIR="${XDG_CONFIG_HOME}/digg/ovs"
+APP_SLUG="offline-video-scribe"
+CONFIG_DIR="${XDG_CONFIG_HOME}/digg/${APP_SLUG}"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
-LEGACY_CONFIG="${HOME}/.config/ovs/config.yaml"
+LEGACY_CONFIG_DIR="${XDG_CONFIG_HOME}/digg/ovs"
+LEGACY_CONFIG="${LEGACY_CONFIG_DIR}/config.yaml"
+LEGACY_FLAT_CONFIG="${HOME}/.config/ovs/config.yaml"
 OVS_CACHE_DIR="${XDG_CACHE_HOME}/digg/ovs"
 if [[ -n "${HF_HUB_CACHE:-}" ]]; then
   HF_HUB="$HF_HUB_CACHE"
 elif [[ -n "${HF_HOME:-}" ]]; then
   HF_HUB="${HF_HOME}/hub"
+elif [[ -d "${HOME}/.cache/huggingface/hub" ]]; then
+  HF_HUB="${HOME}/.cache/huggingface/hub"
 elif [[ -d "${OVS_CACHE_DIR}/huggingface/hub" ]]; then
   HF_HUB="${OVS_CACHE_DIR}/huggingface/hub"
 else
   HF_HUB="${HOME}/.cache/huggingface/hub"
 fi
-OVS_DATA_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/digg/ovs"
+OVS_DATA_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/digg/${APP_SLUG}"
+LEGACY_DATA_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/digg/ovs"
 CLI_NAME="offline-video-scribe"
 CLI_BIN="${HOME}/.local/bin/${CLI_NAME}"
 CLI_ALIAS_BIN="${HOME}/.local/bin/ovs"
@@ -37,7 +43,7 @@ Usage: ./uninstall.sh [options]
 
 Removes offline-video-scribe (CLI + ovs symlink + repo .venv). Prompts what else to delete:
 
-  - Config (~/.config/digg/ovs/config.yaml)
+  - Config (~/.config/digg/offline-video-scribe/config.yaml)
   - Hugging Face model cache (ovs repos only)
   - Transcript output folder (from config, default ~/Transcripts)
 
@@ -154,9 +160,16 @@ if [[ -L "$CLI_ALIAS_BIN" ]] || [[ -e "$CLI_ALIAS_BIN" ]]; then
   run rm -f "$CLI_ALIAS_BIN"
   echo "    removed ${CLI_ALIAS_BIN}"
 fi
-if [[ -d "${OVS_DATA_DIR}/tool" ]]; then
-  run rm -rf "${OVS_DATA_DIR}/tool"
-  echo "    removed ${OVS_DATA_DIR}/tool"
+if [[ -d "${OVS_DATA_DIR}" ]]; then
+  run rm -rf "${OVS_DATA_DIR}"
+  echo "    removed ${OVS_DATA_DIR}"
+fi
+if [[ -d "${LEGACY_DATA_DIR}/tool" ]]; then
+  run rm -rf "${LEGACY_DATA_DIR}/tool"
+  echo "    removed ${LEGACY_DATA_DIR}/tool"
+elif [[ -d "${LEGACY_DATA_DIR}" ]]; then
+  run rm -rf "${LEGACY_DATA_DIR}"
+  echo "    removed ${LEGACY_DATA_DIR}"
 fi
 
 step "Removing project virtualenv"
@@ -168,20 +181,18 @@ fi
 
 if [[ "$DELETE_CONFIG" == "1" ]]; then
   step "Removing config"
-  for f in "$CONFIG_FILE" "$LEGACY_CONFIG"; do
+  for f in "$CONFIG_FILE" "$LEGACY_CONFIG" "$LEGACY_FLAT_CONFIG"; do
     if [[ -f "$f" ]]; then
       run rm -f "$f"
     fi
   done
-  if [[ "$DRY_RUN" != "1" ]] && [[ -d "$CONFIG_DIR" ]] && [[ -z "$(ls -A "$CONFIG_DIR" 2>/dev/null)" ]]; then
-    run rmdir "$CONFIG_DIR"
-  elif [[ "$DRY_RUN" == "1" ]] && [[ -d "$CONFIG_DIR" ]]; then
-    echo "    [dry-run] rmdir $CONFIG_DIR  # if empty"
-  fi
-  legacy_dir="${HOME}/.config/ovs"
-  if [[ "$DRY_RUN" != "1" ]] && [[ -d "$legacy_dir" ]] && [[ -z "$(ls -A "$legacy_dir" 2>/dev/null)" ]]; then
-    run rmdir "$legacy_dir"
-  fi
+  for dir in "$CONFIG_DIR" "$LEGACY_CONFIG_DIR" "${HOME}/.config/ovs"; do
+    if [[ "$DRY_RUN" == "1" ]] && [[ -d "$dir" ]]; then
+      echo "    [dry-run] rmdir $dir  # if empty"
+    elif [[ -d "$dir" ]] && [[ -z "$(ls -A "$dir" 2>/dev/null)" ]]; then
+      run rmdir "$dir"
+    fi
+  done
 else
   echo ""
   echo "    Kept config: $CONFIG_FILE"

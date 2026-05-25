@@ -152,9 +152,13 @@ def cmd_transcribe(args: argparse.Namespace) -> int:
 
     path = resolve_transcribe_path(args.path)
     extensions = cfg.watch_extensions
+    # In archive mode, ignore other videos already under output_dir unless --force
+    # (re-transcribe archived folders) or the user named a path inside that tree.
     exclude = (
         cfg.output_dir.resolve()
         if cfg.output_mode == OutputMode.ARCHIVE
+        and path.is_dir()
+        and not args.force
         else None
     )
     videos = discover_videos(
@@ -163,6 +167,12 @@ def cmd_transcribe(args: argparse.Namespace) -> int:
         recursive=args.recursive,
         exclude_under=exclude,
     )
+    if not videos:
+        print(
+            f"{CLI_NAME}: no matching videos at {path}",
+            file=sys.stderr,
+        )
+        return 2
     input_root = path if path.is_dir() else path.parent
     return run_batch(
         videos,

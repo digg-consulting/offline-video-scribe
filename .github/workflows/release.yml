@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos-tarball:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches pyproject version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VER="$(grep -E '^version = ' pyproject.toml | sed -E 's/^version = "([^"]+)"/\1/')"
+          if [[ "$TAG" != "$VER" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match pyproject.toml version ${VER}" >&2
+            exit 1
+          fi
+
+      - name: Build release archive
+        run: |
+          chmod +x scripts/make-release.sh install.sh uninstall.sh update.sh scripts/bootstrap-install.sh
+          ./scripts/make-release.sh
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/offline-video-scribe-*-macos.tar.gz
+          generate_release_notes: true

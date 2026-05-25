@@ -1,67 +1,45 @@
-# OVS macOS installer (planned)
+# macOS distribution
 
-**Status:** Design note — not shipped yet. Today you install from a git clone with `uv sync`.
+**Shipped today:** unsigned **release tarball** (option B) — no `.dmg`, no Apple code signing.
 
-## Goal
+| Audience | How |
+|----------|-----|
+| End users | [INSTALL.md](INSTALL.md) — GitHub Release `.tar.gz` or bootstrap `curl` script |
+| Developers | `git clone` + `./install.sh` |
+| Future | Signed `.pkg` / `.dmg` (optional; see below) |
 
-Users download a **single installer** (`.pkg` or `.dmg`) that:
+## Release tarball (option B)
 
-1. Installs OVS under a standard path, e.g. **`/opt/ovs`**
-2. Installs a CLI on **`PATH`** (e.g. `/opt/ovs/bin/offline-video-scribe` → `ovs` symlink in `/usr/local/bin`)
-3. Writes config to **`~/.config/digg/ovs/config.yaml`**
-4. Ensures **ffmpeg** is present (or prompts to install via Homebrew)
-5. Guides **`hf auth login`** and accept **gated** [pyannote community-1](https://huggingface.co/pyannote/speaker-diarization-community-1) terms — see [HUGGINGFACE.md](HUGGINGFACE.md)
-6. Runs **`hf download`** for Whisper + pyannote weights into `~/.cache/digg/ovs/huggingface/hub`
-7. Runs **`offline-video-scribe check`** (offline verification)
-
-No git clone required for end users.
-
-## Proposed layout
+`./scripts/make-release.sh` produces:
 
 ```text
-/opt/ovs/
-  bin/offline-video-scribe
-  bin/ovs  # symlink to offline-video-scribe
-  bin/hf
-  .venv/              # uv-managed Python env (mlx-whisper + pyannote)
-  share/config.yaml.example
-  share/doc/README.md
+dist/offline-video-scribe-<version>-macos.tar.gz
+  install.sh
+  update.sh
+  uninstall.sh
+  VERSION
+  INSTALL.txt
+  pyproject.toml, uv.lock, src/, config/, docs/, …
 ```
 
-User data stays outside `/opt`:
+Publish by creating a GitHub Release tagged `v<version>` and attaching the tarball (`.github/workflows/release.yml` does this on tag push).
+
+**Not bundled:** Hugging Face model weights (prerequisite; `install.sh` asks or user follows [HUGGINGFACE.md](HUGGINGFACE.md)).
+
+**Requires on PATH:** `uv`. Optional: Homebrew for `ffmpeg` / `huggingface-cli`.
+
+## Layout after install
 
 | Data | Location |
 |------|----------|
-| Config, preferences, settings | `~/.config/digg/ovs/` |
-| Model cache | `~/.cache/digg/ovs/huggingface/hub` |
-| Tool install (uv) | `~/.local/share/digg/ovs/tool` |
+| Config | `~/.config/digg/offline-video-scribe/` |
+| Model cache | `~/.cache/huggingface/hub` |
+| uv tool | `~/.local/share/digg/offline-video-scribe/` |
 | CLI | `~/.local/bin/offline-video-scribe` (`ovs` → symlink) |
-| Transcripts + archived videos | `~/Transcripts/` (configurable) |
+| Bootstrap extract (optional) | `~/.local/share/digg/offline-video-scribe-releases/` |
 
-## Installer phases
+## Future: `.pkg` / `.dmg` (optional)
 
-| Phase | Action |
-|-------|--------|
-| 1 | Copy payload to `/opt/ovs` |
-| 2 | `uv sync` or ship a pre-built venv in the package |
-| 3 | `offline-video-scribe init` |
-| 4 | `hf auth login` + accept pyannote terms |
-| 5 | `hf download` (Whisper + pyannote per config) |
-| 6 | `offline-video-scribe check` |
+Not required. Unsigned packages trigger Gatekeeper warnings; the tarball + Terminal install avoids that.
 
-## Open decisions
-
-- **Signed `.pkg`** vs unsigned script + Homebrew cask
-- Whether to **bundle Python** or require Homebrew `python@3.12`
-- **PyTorch size** in the package (~large); no way around it while using pyannote
-- Updates: new `.pkg` vs `offline-video-scribe self-update` (out of scope for v1)
-
-## Interim (today)
-
-From a clone:
-
-```bash
-./install.sh
-```
-
-That runs the full one-time flow (uv, CLI on PATH, `ovs` symlink, Homebrew tools, HF downloads, `offline-video-scribe setup`). See [HUGGINGFACE.md](HUGGINGFACE.md) for manual steps. It does **not** install to `/opt` yet.
+If added later, payload could mirror the release tree under `/opt/offline-video-scribe` with the same `install.sh` logic.

@@ -15,6 +15,9 @@ coverage.xml
 dist/
 build/
 
+# Release staging
+dist/staging/
+
 # Environment and secrets
 .env
 .env.*
@@ -30,5 +33,5 @@ build/
 # Logs and debug output
 *.log
 
-# User config/preferences (repo template only; installed copies live in ~/.config/digg/ovs/)
+# User config/preferences (repo template only; installed copies live in ~/.config/digg/offline-video-scribe/)
 config/config.yaml
