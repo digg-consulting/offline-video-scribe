@@ -26,7 +26,7 @@ dist/staging/
 .DS_Store
 
 # Editors and local IDE
-.cursor/
+.cursor/*
 .idea/
 .vscode/
 

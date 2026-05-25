@@ -85,6 +85,15 @@ need_cmd() {
   fi
 }
 
+install_git_hooks() {
+  # Strip AI tool co-author trailers from commit messages in this clone.
+  if [[ -d "${ROOT}/.git" ]] && [[ -f "${ROOT}/scripts/git-hooks/prepare-commit-msg" ]]; then
+    mkdir -p "${ROOT}/.git/hooks"
+    cp "${ROOT}/scripts/git-hooks/prepare-commit-msg" "${ROOT}/.git/hooks/prepare-commit-msg"
+    chmod +x "${ROOT}/.git/hooks/prepare-commit-msg"
+  fi
+}
+
 warn_missing() {
   local cmd="$1"
   local hint="$2"
@@ -184,6 +193,8 @@ if [[ "$UPDATE_MODE" == "1" ]]; then
 else
   step "Install Offline Video Scribe"
 fi
+
+install_git_hooks
 
 step "Checking uv"
 need_cmd uv
